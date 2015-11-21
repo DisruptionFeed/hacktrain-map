@@ -1,0 +1,56 @@
+{
+   "summary" : "Amended South West Trains services from Monday 23 to Friday 27 November",
+   "description" : "<p>Engineering work is taking place over some parts of the South West Trains network
+                    with the following trains amended:</p>
+
+                    <p><strong>Monday to Thursday</strong></p>
+
+                    <p><strong></strong>From 21:10 each night, buses replace trains between Haslemere and Petersfield.
+                    Some trains will be diverted to run via Eastleigh.</p>
+
+                    <p>22:57 Exeter St Davids to Salisbury is diverted via Westbury and will arrive at Westbury
+                    later than normal.</p>
+
+                    <p>23:05 London Waterloo to Poole is replaced by a bus between Southampton Central and Poole.</p>
+                    <p>23:50 London Waterloo to Reading is replaced by a bus between Virginia Water and Reading.</p>
+                    <p><b>Tuesday to Friday</b></p>
+                    <p>04:25 Guildford to London Waterloo will not call at Surbiton or Wimbledon. A bus will run
+                    between Guilford and Clapham Junction calling at Surbiton and Wimbledon.</p>
+                    <p>01:05 London Waterloo to Southampton Central is retimed to arrive in to Southampton Central
+                    later than normal.</p>
+
+                    <p><strong>Planning Your Journey</strong></p>
+                    <p>For full details of these changes and the impact on your journey, please use the National Rail
+                    Enquiries <a href=\"http://ojp.nationalrail.co.uk/\">Journey Planner</a></p>",
+   "lastChangedDate" : "2015-09-09T00:10:00.000+01:00",
+   "equipmentReason" : "MAINTENANCE_WORK",
+   "ojpVersion" : "0",
+   "disruptionVersion" : "20150909001000",
+   "creationTime" : "2015-09-03T10:35:00.000+01:00",
+   "incidentNumber" : "BBC3A3CF3A3B44959B1957C843045A0F",
+   "networks" : {
+      "affectedRoute" : "<p>Various South West Trains&#160;routes</p>"
+   },
+   "infoLinks" : [
+      {
+         "label" : "nationalrail.co.uk",
+         "uri" : "http://www.nationalrail.co.uk/service_disruptions/106657.aspx"
+      },
+      {
+         "label" : "Additional Maps",
+         "uri" : "http://www.nationalrail.co.uk/static/documents/maps/SW_23NOV.pdf"
+      }
+   ],
+   "progress" : "open",
+   "operators" : {
+      "name" : "South West Trains",
+      "ref" : "SW"
+   },
+   "validityPeriod" : {
+      "startTime" : "2015-11-23T00:00:00.000Z",
+      "endTime" : "2015-11-27T04:00:00.000Z"
+   },
+   "planned" : "true",
+   "changedBy" : "MBaker",
+   "participantRef" : "BBC3A3CF3A3B44959B1957C843045A0F"
+},

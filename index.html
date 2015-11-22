@@ -1,13 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="mapApp">
     <head>
         <meta charset="utf-8">
         <title>Map</title>
         <link rel="stylesheet" href="style.css" media="screen" title="mapcss" charset="utf-8">
     </head>
-    <body>
-        <canvas id="canvas" width="300" height="300"></canvas>
+    <body ng-controller="DelaysController">
 
+        <div>
+            <input type="date" ng-model="date" />
+            <input type="text" ng-model="from_station" />
+            <input type="text" ng-model="to_station" />
+        </div>
+
+        <section id="map">
+        </section>
+
+        <script src="jquery-2.1.4.min.js" charset="utf-8"></script>
+        <script src="sigma.min.js" charset="utf-8"></script>
+        <script src="plugins/sigma.plugins.animate.min.js" charset="utf-8"></script>
+        <script src="plugins/sigma.layout.forceAtlas2.min.js" charset="utf-8"></script>
+        <script src="plugins/sigma.plugins.dragNodes.min.js" charset="utf-8"></script>
+        <!--<script src="angular.min.js" charset="utf-8"></script>-->
         <script src="app.js" charset="utf-8"></script>
     </body>
 </html>

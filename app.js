@@ -1,122 +1,172 @@
-var colors = {
-    disruption: "#990000",
-    normal: "#999999",
-    normal_station: "#222222",
-    disruption_station: "#ff0000"
+function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1);
+  var a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  var d = R * c; // Distance in km
+  return d;
 }
 
-var Map = function(canvasId, colors) {
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
 
-    this.canvas = document.getElementById(canvasId);
-    this.ctx = this.canvas.getContext("2d")
-    this.colors = colors;
-
-    this.stations = [[0, "nothing"]];
-    this.disruptions = {};
-
-    this.fill = function(colName) {
-        this.ctx.strokeStyle = undefined;
-        this.ctx.lineWidth = "0px";
-        this.ctx.fillStyle = (this.colors[colName]);
-        this.ctx.fill();
-        console.log("fill!");
-    }.bind(this)
-
-    this.stroke = function(colName) {
-        this.ctx.strokeStyle = this.colors[colName];
-        this.ctx.lineWidth = "3px";
-        // this.ctx.fillStyle = undefined;
-        this.ctx.stroke();
-        console.log("stroke!");
-    }.bind(this);
-
-    this.update = function(data) {
-        this.disruptions = data["disruptions"];
-        this.stations = data["stations"];
-
-        this.draw();
-    }.bind(this);
-
-    this.disr = function(a,b) {
-        return this.disruptions[a] || this.disruptions[b];
-    }.bind(this);
-
-    this.draw = function() {
-        this.ctx.clearRect(0,0,this.width,this.height);
-
-        // line
-        var longest = this.stations[0];
-        var width = 0.9 * this.width;
-        var height = 3;
-        var x = (this.width - width)/2;
-        var y = (this.height - height)/2;
-
-        this.ctx.beginPath();
-        this.ctx.rect(x,y,width,height);
-        this.fill("normal");
-        //this.ctx.closePath();
-
-        var sum = 0;
-        for (var i=0;i<longest.length;i++) {
-            sum+=longest[i][0];
+function parseFloats(stations) {
+    for (var i=0;i<stations.length;i++) {
+        for (var j=0; j<stations[i].length; j++) {
+            stations[i][j].lon = parseFloat(stations[i][j].lon);
+            stations[i][j].lat = parseFloat(stations[i][j].lat);
         }
-        var px_per_nr = width / sum;
+    }
+    return stations;
+}
 
-        for (var i=0;i<longest.length;i++) {
-            x += longest[i][0]*px_per_nr;
-
-            // draw a station Circle
-            this.ctx.arc(x,y,7,0,2*Math.PI);
-            this.stroke(this.disr(longest[i][1], false) ? "disruption_station" : "normal_station");
+function minLatLon(stations) {
+    var lat = stations[0][0].lat;
+    var lon = stations[0][0].lon;
+    for (var i=0;i<stations.length;i++) {
+        for (var j=0; j<stations[i].length; j++) {
+            var c = stations[i][j];
+            if (c.lat < lat) {
+                lat = c.lat;
+            }
+            if (c.lon < lon) {
+                lon = c.lon;
+            }
         }
+    }
+    return {lat: lat, lon: lon};
+}
 
-    }.bind(this);
+function maxLatLon(stations) {
+    var lat = stations[0][0].lat;
+    var lon = stations[0][0].lon;
+    for (var i=0;i<stations.length;i++) {
+        for (var j=0; j<stations[i].length; j++) {
+            var c = stations[i][j];
+            if (c.lat > lat) {
+                lat = c.lat;
+            }
+            if (c.lon > lon) {
+                lon = c.lon;
+            }
+        }
+    }
+    return {lat: lat, lon: lon};
+}
 
-    this.resize = function() {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+function pos(no, min, max, mult) {
+    var res = mult*((no-min)/(max-min));
+    console.log("POS", no, min, max, mult, res);
+    return mult*((no-min)/(max-min));
+}
 
-        this.draw();
-    }.bind(this);
+function loadGraph(url, callback) {
 
-    // resize once.
-    this.resize();
-};
+    $.getJSON()
+    $.ajax({
+        dataType: "json",
+        url: url,
+        success: function(data) {
+            console.log("callback called", data);
+            data = parseFloats(data);
+
+            var graph = {
+                nodes: [],
+                edges: []
+            };
+
+            var min = minLatLon(data);
+            var max = maxLatLon(data);
+
+            var el = document.getElementById("map");
+            var width = el.clientWidth;
+            var height = el.clientHeight;
+
+            console.log("min", min);
+            console.log("max", max);
+
+            nodeIndex = {};
+            edgeIndex = {};
+
+            for (var i=0;i<data.length;i++) {
+                var line = data[i];
+                for (var j=0;j<line.length;j++) {
+                    var c = line[j];
+                    if (c.x !== undefined) {
+                        continue;
+                    }
+                    // add some x,y to it.
+                    data[i][j].x = pos(c.lon, min.lon, max.lon, width);
+                    data[i][j].y = pos(c.lat, min.lat, max.lat, -height);
+                }
+            }
+
+            for (var i=0;i<data.length;i++) {
+                var line = data[i];
+                for (var j=0;j<line.length;j++) {
+                    if (nodeIndex[line[j].name] === undefined) {
+                        graph.nodes.push({
+                            "id": line[j].name,
+                            "label": line[j].name,
+                            "size": 3,
+                            "x": line[j].x,
+                            "y": line[j].y
+                        });
+                        nodeIndex[line[j].name] = true;
+                    }
+
+                    if (j > 0) {
+                        var prev = line[j-1];
+                        var key = prev.name+"_TO_"+line[j].name
+                        if (edgeIndex[key] === undefined) {
+                            graph.edges.push({
+                                id: key,
+                                source: prev.name,
+                                target: line[j].name
+                            });
+                            edgeIndex[key] = true;
+                        }
+                    }
+                }
+            }
+            console.log("gets here yo");
+            callback(graph);
+        }
+    });
+}
+
+function initSigma(graph) {
+    console.log("Loading graph into sigma.", graph);
+    window.s = new sigma({
+        graph: graph,
+        // container: 'map',
+        settings: {
+            animationsTime: 100
+        },
+        renderers: [
+            {
+              container: document.getElementById('map'),
+              type: 'canvas' // sigma.renderers.canvas works as well
+            }
+        ]
+    });
+}
 
 function init() {
-    window.map = new Map("canvas", colors);
-    window.addEventListener("resize", map.resize);
+    loadGraph("coords.json", initSigma);
+}
 
-    var stations = [[
-    	[0, "Swindon"],
-    	[0.5, "Didcot Parkway"],
-    	[0.5, "Cholsey"],
-    	[0.5, "Goring & Streatley"],
-    	[0.5, "Pangbourne"],
-    	[0.5, "Tilehurst"],
-    	[0.5, "Reading"],
-    	[1, "Twyford"],
-    	[1, "Maidenhead"],
-    	[0.5, "Taplow"],
-    	[0.5, "Burnham"],
-    	[0.5, "Slough"],
-    	[0.5, "Langley"],
-    	[0.5, "Iver"],
-    	[0.5, "West Drayton"],
-    	[0.5, "Hayes & Harlington"],
-    	[0.5, "Southall"],
-    	[0.5, "Hanwell"],
-    	[1, "West Ealing"],
-    	[0.5, "Ealing Broadway"],
-    	[0.5, "Acton Main Line"],
-    	[0.7, "London Paddington"]
-    ]];
+window.addEventListener("load", init);
 
-    window.map.update({stations:stations, disruptions:{}});
-};
-
-window.addEventListener("load", function() {
-    init();
-});
+/*
+angular.module('mapApp', [])
+  .controller('DelaysController', function($scope) {
+      $scope.date = new Date();
+  });
+*/

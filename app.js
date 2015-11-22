@@ -60,9 +60,76 @@ function maxLatLon(stations) {
     return {lat: lat, lon: lon};
 }
 
+function populateSelects(stations, ids) {
+    console.log(ids);
+    for (var i=0;i<ids.length; i++) {
+        ids[i] = document.getElementById(ids[i]);
+    }
+    console.log(ids);
+    for (var i=0;i<stations.length;i++) {
+        for (var j=0; j<stations[i].length; j++) {
+            var c = stations[i][j].name;
+            for (var k=0;k<ids.length;k++) {
+                var el = document.createElement("option");
+                el.value = c;
+                el.appendChild(document.createTextNode(c));
+                ids[k].appendChild(el);
+            }
+        }
+    }
+    for (var i=0;i<ids.length;i++) {
+        ids[i].addEventListener("change", selectUpdated);
+    }
+}
+
+function zoomTo(a, b, width, height) {
+    // zoom to include a and b
+    var xdiff = Math.abs(a["read_cam0:x"] - b["read_cam0:x"])+40; // 20px border
+    var ydiff = Math.abs(a["read_cam0:y"] - b["read_cam0:y"])+40;
+
+    console.log("xydiff", xdiff, ydiff);
+
+    if (xdiff > ydiff) {
+        s.camera.ratio = xdiff/width;
+    } else {
+        s.camera.ratio = ydiff/height;
+    }
+
+    s.camera.x = (a["read_cam0:x"] + b["read_cam0:x"])/2;
+    s.camera.y = (a["read_cam0:y"] + b["read_cam0:y"])/2;
+
+    console.log("zoom to", s.camera.x, s.camera.y, s.camera.ratio);
+
+    s.refresh();
+}
+
+var previous_from = undefined;
+var previous_to = undefined;
+
+function selectUpdated() {
+    var from_ = document.getElementById("from_station").value;
+    var to_ = document.getElementById("to_station").value;
+
+    var node_from = s.graph.nodes(from_);
+    var node_to = s.graph.nodes(to_);
+
+    node_from.color = "#00ff00";
+    node_to.color = "#00ff00";
+
+    if (previous_to !== undefined) {
+        previous_to.color = "#000000";
+        previous_from.color = "#000000";
+    }
+
+    var parent = document.getElementById("map");
+    zoomTo(node_from, node_to, parent.clientWidth, parent.clientHeight);
+
+    previous_to = node_to;
+    previous_from = node_from;
+}
+
 function pos(no, min, max, mult) {
     var res = mult*((no-min)/(max-min));
-    console.log("POS", no, min, max, mult, res);
     return mult*((no-min)/(max-min));
 }
 
@@ -83,6 +150,8 @@ function loadGraph(url, callback) {
 
             var min = minLatLon(data);
             var max = maxLatLon(data);
+
+            populateSelects(data, ["from_station", "to_station"]);
 
             var el = document.getElementById("map");
             var width = el.clientWidth;

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Disruption planner</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/datepicker.css" rel="stylesheet">
+
+  </head>
+  <body>
+  <div class="col-md-6 col-md-offset-3 col-sm-12">
+  <div class="panel panel-default">
+    <div class="panel-heading"><h1>Disruption planner form</h1></div>
+    <div class="panel-body">
+    <form id="mf">
+  <div class="form-group">
+    <label for="idProject">ID project</label>
+    <input type="text" class="form-control" id="idProject" placeholder="ID project">
+  </div>
+  <div class="form-group">
+    <label for="typeOfwork">Type of work</label>
+    <input type="text" class="form-control" id="typeOfwork" placeholder="Type of work">
+  </div>
+  <div class="form-group">
+  <div class="col-dm-12">
+    <label>Replacement</label>
+  </div>
+    <label>
+      <input type="checkbox"> Bus
+    </label>
+    <label>
+      <input type="checkbox"> Diversion
+    </label>
+  </div>
+
+
+  <h5>Affected roads</h5>
+  <div class="col-md-6">
+  <div class="form-group">
+    <label for="roadFrom">From</label>
+    <select class="form-control stations">
+    </select>
+  </div>
+  </div>
+  <div class="col-md-6">
+  <div class="form-group">
+    <label for="roadTo">To</label>
+    <select class="form-control stations">
+    </select>
+  </div>
+  </div>
+  <div class="col-md-12">
+    <div class="form-group">
+    <label for="throughStations">Through stations</label>
+    <span class="small">Separate by comma.</span>
+    <input type="text" class="form-control" id="throughStations" placeholder="Stations between">
+    </div>
+  </div>
+  <h5>Date</h5>
+  <div class="col-md-6">
+  <div class="form-group">
+    <label class="col-md-12">From</label>
+    <input type="text" value="23-11-2015" id="datepickerFrom">
+    <input type="time" value="00:00"></input>
+  </div>
+  </div>
+  <div class="col-md-6">
+  <div class="form-group">
+    <label class="col-md-12">To</label>
+    <input type="text" value="23-11-2015" id="datepickerTo">
+    <input type="time" value="00:00"></input>
+  </div>
+  </div>
+  <div class="col-dm-12">
+  <div class="form-group">
+    <label for="operators">Operators</label>
+    <select class="form-control">
+    <option value="">All train operators</option>
+    <option value="le">Abellio Greater Anglia</option>
+    <option value="aw">Arriva Trains Wales</option>
+    <option value="cc">c2c</option>
+    <option value="cs">Caledonian Sleeper</option>
+    <option value="ch">Chiltern Railways</option>
+    <option value="xc">CrossCountry</option>
+    <option value="em">East Midlands Trains</option>
+    <option value="es">Eurostar</option>
+    <option value="tp">First TransPennine Express</option>
+    <option value="gx">Gatwick Express</option>
+    <option value="gc">Grand Central</option>
+    <option value="gn">Great Northern</option>
+    <option value="gw">Great Western Railway</option>
+    <option value="hc">Heathrow Connect</option>
+    <option value="hx">Heathrow Express</option>
+    <option value="ht">Hull Trains</option>
+    <option value="il">Island Line</option>
+    <option value="lm">London Midland</option>
+    <option value="lo">London Overground</option>
+    <option value="lt">London Underground</option>
+    <option value="me">Merseyrail</option>
+    <option value="nt">Northern Rail</option>
+    <option value="sr">ScotRail</option>
+    <option value="sw">South West Trains</option>
+    <option value="se">Southeastern</option>
+    <option value="sn">Southern</option>
+    <option value="sx">Stansted Express</option>
+    <option value="xr">TfL Rail</option>
+    <option value="tl">Thameslink</option>
+    <option value="vt">Virgin Trains</option>
+    <option value="gr">Virgin Trains East Coast</option>
+    </select>
+  </div>
+  </div>
+
+
+  <button type="submit" class="btn btn-default" id="submit">Submit</button>
+</form>
+</div>
+</div>
+</div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-datepicker.js"></script>
+    <script>
+    $(document).ready(function()
+       {
+        $('#datepickerFrom').datepicker({
+          format: 'dd-mm-yyyy'
+      });
+        $('#datepickerTo').datepicker({
+        format: 'dd-mm-yyyy'
+      });
+
+      console.log("near")
+      $.ajax({
+          url: "/coords.json",
+          dataType: "json",
+          success: function(stations) {
+              console.log(stations);
+              var ids = document.getElementsByClassName("stations");
+              for (var i=0;i<stations.length;i++) {
+                  for (var j=0; j<stations[i].length; j++) {
+                      var c = stations[i][j].name;
+                      for (var k=0;k<ids.length;k++) {
+                          var el = document.createElement("option");
+                          el.value = c;
+                          el.appendChild(document.createTextNode(c));
+                          ids[k].appendChild(el);
+                      }
+                  }
+              }
+          }
+      });
+
+      function getFormData($form){
+          var unindexed_array = $form.serializeArray();
+          var indexed_array = {};
+
+          $.map(unindexed_array, function(n, i){
+              indexed_array[n['name']] = n['value'];
+          });
+
+          return indexed_array;
+      }
+
+      $("#mf").submit(function(e) {
+          e.preventDefault();
+          var data = getFormData($("#mf"));
+          localStorage = JSON.stringify(data);
+      });
+    });
+
+    </script>
+  </body>
+</html>

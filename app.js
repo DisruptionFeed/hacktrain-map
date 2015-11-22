@@ -103,29 +103,53 @@ function zoomTo(a, b, width, height) {
     s.refresh();
 }
 
-var previous_from = undefined;
-var previous_to = undefined;
+function reset(sig) {
+    var nodes = sig.graph.nodes();
+    for (var i=0;i<nodes.length;i++) {
+        nodes[i].color = "#444444";
+        nodes[i].size = 2;
+    }
+
+    var edges = sig.graph.edges();
+    for (var i=0;i<edges.length;i++) {
+        edges[i].color = "#444444";
+        edges[i].size = 2;
+    }
+}
 
 function selectUpdated() {
+
+    reset(s);
+
     var from_ = document.getElementById("from_station").value;
     var to_ = document.getElementById("to_station").value;
 
-    var node_from = s.graph.nodes(from_);
-    var node_to = s.graph.nodes(to_);
+    var nodes = s.graph.astar(from_, to_, {undirected:true});
 
-    node_from.color = "#00ff00";
-    node_to.color = "#00ff00";
+    var node_from = nodes[0];
+    var node_to = nodes[nodes.length-1];
 
-    if (previous_to !== undefined) {
-        previous_to.color = "#000000";
-        previous_from.color = "#000000";
+    nodes[0].color="#00ff00";
+    for (var i=1;i<nodes.length;i++) {
+        nodes[i].color="#00ff00";
+        var edgId = nodes[i-1].id + "_TO_" + nodes[i].id;
+        var edge = s.graph.edges(edgId);
+        if (edge === undefined) {
+            edgId = nodes[i].id + "_TO_" + nodes[i-1].id;
+            edge = s.graph.edges(edgId);
+        }
+
+        edge.color = "#00ff00";
     }
+
+    // var node_from = s.graph.nodes(from_);
+    // var node_to = s.graph.nodes(to_);
+
+    // node_from.color = "#00ff00";
+    // node_to.color = "#00ff00";
 
     var parent = document.getElementById("map");
     zoomTo(node_from, node_to, parent.clientWidth, parent.clientHeight);
-
-    previous_to = node_to;
-    previous_from = node_from;
 }
 
 function pos(no, min, max, mult) {

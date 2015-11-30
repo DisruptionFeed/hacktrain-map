@@ -1,3 +1,72 @@
+var disruptions_hcd = [
+    {
+        from: new Date(2015,11,22),
+        to: new Date(2015,11,23),
+        station_from: "Didcot Parkway",
+        station_to: "Swindon",
+        bus: true,
+        description: "Buses replace trains."
+    },
+    {
+        from: new Date(2015,11,22),
+        to: new Date(2015,11,23),
+        station_from: "Pangbourne",
+        station_to: "Tilehurst",
+        bus: true,
+        description: "Buses replace trains."
+    },
+    {
+        from: new Date(2015,11,22),
+        to: new Date(2015,11,23),
+        station_from: "Hayes & Harlington",
+        station_to: "Heathrow Terminal 5",
+        bus: true,
+        description: "Buses replace trains."
+    }
+];
+
+function drawDisruptions() {
+    var date = document.getElementById("date").value;
+    console.log(date);
+
+    for (var j=0;j<disruptions_hcd.length;j++) {
+        var d = disruptions_hcd[j];
+        //if (!(date === undefined || (d.from >= date && d.to <= date))) {
+        //    console.log("skipping");
+    //        continue;
+    //    }
+
+        console.log(d);
+
+        var from_node = s.graph.nodes(d.station_from);
+        var to_node = s.graph.nodes(d.station_to);
+        console.log("FROM TO", [from_node, to_node]);
+
+        var nodes = s.graph.astar(from_node.id, to_node.id, {undirected:true});
+
+        console.log(nodes);
+
+        var node_from = nodes[0];
+        var node_to = nodes[nodes.length-1];
+
+        nodes[0].color="#ff0000";
+
+        for (var i=1;i<nodes.length;i++) {
+            nodes[i].color="#ff0000";
+            var edgId = nodes[i-1].id + "_TO_" + nodes[i].id;
+            var edge = s.graph.edges(edgId);
+            if (edge === undefined) {
+                edgId = nodes[i].id + "_TO_" + nodes[i-1].id;
+                edge = s.graph.edges(edgId);
+            }
+
+            edge.color = "#ff0000";
+        }
+
+        node_to.size = 8;
+    }
+}
+
 function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
   var R = 6371; // Radius of the earth in km
   var dLat = deg2rad(lat2-lat1);  // deg2rad below
@@ -107,13 +176,13 @@ function reset(sig) {
     var nodes = sig.graph.nodes();
     for (var i=0;i<nodes.length;i++) {
         nodes[i].color = "#444444";
-        nodes[i].size = 2;
+        nodes[i].size = 1;
     }
 
     var edges = sig.graph.edges();
     for (var i=0;i<edges.length;i++) {
         edges[i].color = "#444444";
-        edges[i].size = 2;
+        edges[i].size = 1;
     }
 }
 
@@ -130,8 +199,12 @@ function selectUpdated() {
     var node_to = nodes[nodes.length-1];
 
     nodes[0].color="#00ff00";
+
+    node_from.size = 8;
+
     for (var i=1;i<nodes.length;i++) {
         nodes[i].color="#00ff00";
+        nodes[i].size = 5;
         var edgId = nodes[i-1].id + "_TO_" + nodes[i].id;
         var edge = s.graph.edges(edgId);
         if (edge === undefined) {
@@ -142,11 +215,15 @@ function selectUpdated() {
         edge.color = "#00ff00";
     }
 
+    node_to.size = 8;
+
     // var node_from = s.graph.nodes(from_);
     // var node_to = s.graph.nodes(to_);
 
     // node_from.color = "#00ff00";
     // node_to.color = "#00ff00";
+
+    drawDisruptions();
 
     var parent = document.getElementById("map");
     zoomTo(node_from, node_to, parent.clientWidth, parent.clientHeight);
@@ -247,8 +324,12 @@ function initSigma(graph) {
               container: document.getElementById('map'),
               type: 'canvas' // sigma.renderers.canvas works as well
             }
-        ]
+        ],
+        labelThreshold: 2
     });
+
+    drawDisruptions();
+    s.refresh();
 }
 
 function init() {
